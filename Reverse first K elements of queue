@@ -1,0 +1,112 @@
+pythin -->
+
+from collections import deque
+
+class Solution:
+    def reverseFirstK(self, q, k):
+        if k > len(q) or k <= 0:
+            return q
+        
+        stack = []
+        # Step 1: Pop first k elements from front
+        for _ in range(k):
+            stack.append(q.popleft())
+        
+        # Step 2: Append back the reversed elements
+        while stack:
+            q.append(stack.pop())
+        
+        # Step 3: Rotate the remaining elements to maintain order
+        for _ in range(len(q) - k):
+            q.append(q.popleft())
+        
+        return q
+c-->
+#include <stdio.h>
+#include <stdlib.h>
+
+struct Node {
+    int data;
+    struct Node* next;
+};
+
+struct Queue {
+    struct Node *front, *rear;
+    int size;
+};
+
+// Create a new node
+struct Node* newNode(int data) {
+    struct Node* node = (struct Node*)malloc(sizeof(struct Node));
+    node->data = data;
+    node->next = NULL;
+    return node;
+}
+
+// Initialize queue
+struct Queue* createQueue() {
+    struct Queue* q = (struct Queue*)malloc(sizeof(struct Queue));
+    q->front = q->rear = NULL;
+    q->size = 0;
+    return q;
+}
+
+// Enqueue
+void enqueue(struct Queue* q, int data) {
+    struct Node* node = newNode(data);
+    if (!q->rear) {
+        q->front = q->rear = node;
+    } else {
+        q->rear->next = node;
+        q->rear = node;
+    }
+    q->size++;
+}
+
+// Dequeue
+int dequeue(struct Queue* q) {
+    if (!q->front) return -1;
+    struct Node* temp = q->front;
+    int data = temp->data;
+    q->front = q->front->next;
+    if (!q->front) q->rear = NULL;
+    free(temp);
+    q->size--;
+    return data;
+}
+
+// Reverse first k elements
+void reverseFirstK(struct Queue* q, int k) {
+    if (k > q->size || k <= 0) return;
+
+    int *stack = (int*)malloc(k * sizeof(int));
+    int top = -1;
+
+    // Step 1: Dequeue first k elements into stack
+    for (int i = 0; i < k; i++) {
+        stack[++top] = dequeue(q);
+    }
+
+    // Step 2: Enqueue stack elements back (reversed)
+    while (top >= 0) {
+        enqueue(q, stack[top--]);
+    }
+
+    // Step 3: Move remaining elements to back to maintain order
+    int remaining = q->size - k;
+    for (int i = 0; i < remaining; i++) {
+        enqueue(q, dequeue(q));
+    }
+
+    free(stack);
+}
+
+// Print queue
+void printQueue(struct Queue* q) {
+    struct Node* curr = q->front;
+    while (curr) {
+        printf("%d ", curr->data);
+        curr = curr->next;
+    }
+    printf("\n");
+}

@@ -1,0 +1,84 @@
+Python ->
+from collections import deque
+class Solution:
+    def orangesRotting(self, mat):
+        n, m = len(mat), len(mat[0])
+        q = deque()
+        fresh = 0
+        for i in range(n):
+            for j in range(m):
+                if mat[i][j] == 2:
+                    q.append((i, j, 0))  
+                elif mat[i][j] == 1:
+                    fresh += 1
+        if fresh == 0:
+            return 0
+        directions = [(-1,0),(1,0),(0,-1),(0,1)]
+        time = 0
+        while q:
+            x, y, t = q.popleft()
+            time = max(time, t)
+            for dx, dy in directions:
+                nx, ny = x + dx, y + dy
+                if 0 <= nx < n and 0 <= ny < m and mat[nx][ny] == 1:
+                    mat[nx][ny] = 2
+                    fresh -= 1
+                    q.append((nx, ny, t + 1))
+        return time if fresh == 0 else -1
+
+
+
+c-->
+typedef struct {
+    int x, y, time;
+} Node;
+typedef struct {
+    Node q[MAX * MAX];
+    int front, rear;
+} Queue;
+void initQueue(Queue* q) {
+    q->front = q->rear = 0;
+}
+void enqueue(Queue* q, int x, int y, int t) {
+    q->q[q->rear].x = x;
+    q->q[q->rear].y = y;
+    q->q[q->rear].time = t;
+    q->rear++;
+}
+Node dequeue(Queue* q) {
+    return q->q[q->front++];
+}
+int isEmpty(Queue* q) {
+    return q->front == q->rear;
+}
+int orangesRotting(int mat[MAX][MAX], int n, int m) {
+    Queue q;
+    initQueue(&q);
+    int fresh = 0;
+    int dx[] = {-1, 1, 0, 0};
+    int dy[] = {0, 0, -1, 1};
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < m; j++) {
+            if (mat[i][j] == 2)
+                enqueue(&q, i, j, 0);
+            else if (mat[i][j] == 1)
+                fresh++;
+        }
+    }
+    if (fresh == 0) return 0;
+    int time = 0;
+    while (!isEmpty(&q)) {
+        Node curr = dequeue(&q);
+        time = curr.time;
+        for (int d = 0; d < 4; d++) {
+            int nx = curr.x + dx[d];
+            int ny = curr.y + dy[d];
+            if (nx >= 0 && nx < n && ny >= 0 && ny < m && mat[nx][ny] == 1) {
+                mat[nx][ny] = 2;
+                fresh--;
+                enqueue(&q, nx, ny, curr.time + 1);
+            }
+        }
+    }
+    return (fresh == 0) ? time : -1;
+}

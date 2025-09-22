@@ -1,0 +1,39 @@
+Python ->
+class StackQueue:
+    def __init__(self):
+        self.s1 = []  
+        self.s2 = []  
+    def push(self, x):
+        self.s1.append(x)
+    def pop(self):
+        if not self.s2:
+            while self.s1:
+                self.s2.append(self.s1.pop())
+        if not self.s2:
+            return -1
+        return self.s2.pop()
+
+
+c-->
+typedef struct {
+    int s1[MAX];
+    int s2[MAX];
+    int top1;
+    int top2;
+} StackQueue;
+void initQueue(StackQueue* q) {
+    q->top1 = -1;
+    q->top2 = -1;
+}
+void push(StackQueue* q, int x) {
+    q->s1[++q->top1] = x;
+}
+int pop(StackQueue* q) {
+    if (q->top2 == -1) {
+        while (q->top1 != -1) {
+            q->s2[++q->top2] = q->s1[q->top1--];
+        }
+    }
+    if (q->top2 == -1) return -1; 
+    return q->s2[q->top2--];
+}

@@ -1,0 +1,126 @@
+python -->
+
+class Node:
+    def __init__(self, key, val):
+        self.key = key
+        self.val = val
+        self.prev = None
+        self.next = None
+
+class LRUCache:
+    def __init__(self, cap):
+        self.cap = cap
+        self.cache = {}  # key -> Node
+        # Dummy head and tail
+        self.head = Node(0, 0)
+        self.tail = Node(0, 0)
+        self.head.next = self.tail
+        self.tail.prev = self.head
+
+    # Remove node from DLL
+    def _remove(self, node):
+        node.prev.next = node.next
+        node.next.prev = node.prev
+
+    # Insert node at tail (MRU)
+    def _add(self, node):
+        node.prev = self.tail.prev
+        node.next = self.tail
+        self.tail.prev.next = node
+        self.tail.prev = node
+
+    def get(self, key):
+        if key in self.cache:
+            node = self.cache[key]
+            self._remove(node)
+            self._add(node)
+            return node.val
+        return -1
+
+    def put(self, key, val):
+        if key in self.cache:
+            self._remove(self.cache[key])
+        node = Node(key, val)
+        self._add(node)
+        self.cache[key] = node
+        if len(self.cache) > self.cap:
+            lru = self.head.next
+            self._remove(lru)
+            del self.cache[lru.key]
+
+c-->
+#define MAX_KEY 10000
+
+struct Node {
+    int key, value;
+    struct Node* prev;
+    struct Node* next;
+};
+
+struct LRUCache {
+    int cap;
+    int size;
+    struct Node* head;
+    struct Node* tail;
+    struct Node* hash[MAX_KEY+1]; // simple direct access
+};
+
+// Initialize
+void LRUCache_init(struct LRUCache* cache, int cap) {
+    cache->cap = cap;
+    cache->size = 0;
+    for(int i=0;i<=MAX_KEY;i++) cache->hash[i] = NULL;
+    cache->head = (struct Node*)malloc(sizeof(struct Node));
+    cache->tail = (struct Node*)malloc(sizeof(struct Node));
+    cache->head->next = cache->tail;
+    cache->tail->prev = cache->head;
+}
+
+// Helper: remove node
+void removeNode(struct Node* node) {
+    node->prev->next = node->next;
+    node->next->prev = node->prev;
+}
+
+// Helper: add node to tail (MRU)
+void addNodeToTail(struct LRUCache* cache, struct Node* node) {
+    struct Node* prev = cache->tail->prev;
+    prev->next = node;
+    node->prev = prev;
+    node->next = cache->tail;
+    cache->tail->prev = node;
+}
+
+// Get value
+int get(struct LRUCache* cache, int key) {
+    struct Node* node = cache->hash[key];
+    if(!node) return -1;
+    removeNode(node);
+    addNodeToTail(cache, node);
+    return node->value;
+}
+
+// Put value
+void put(struct LRUCache* cache, int key, int value) {
+    struct Node* node = cache->hash[key];
+    if(node) {
+        removeNode(node);
+        node->value = value;
+        addNodeToTail(cache, node);
+    } else {
+        node = (struct Node*)malloc(sizeof(struct Node));
+        node->key = key;
+        node->value = value;
+        addNodeToTail(cache, node);
+        cache->hash[key] = node;
+        cache->size++;
+        if(cache->size > cache->cap) {
+            struct Node* lru = cache->head->next;
+            removeNode(lru);
+            cache->hash[lru->key] = NULL;
+            free(lru);
+            cache->size--;
+        }
+    }
+}
+

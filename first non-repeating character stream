@@ -1,0 +1,50 @@
+
+python -->
+from collections import deque, defaultdict
+
+class Solution:
+    def firstNonRepeating(self, s):
+        freq = defaultdict(int)
+        q = deque()
+        result = []
+
+        for ch in s:
+            freq[ch] += 1
+            q.append(ch)
+
+            while q and freq[q[0]] > 1:
+                q.popleft()
+
+            if q:
+                result.append(q[0])
+            else:
+                result.append('#')
+
+        return ''.join(result)
+c-->
+#include <stdio.h>
+#include <string.h>
+
+void firstNonRepeating(char* s, char* result) {
+    int freq[26] = {0};
+    int q[100005]; // queue of indices
+    int front = 0, rear = 0;
+
+    int n = strlen(s);
+    for (int i = 0; i < n; i++) {
+        int idx = s[i] - 'a';
+        freq[idx]++;
+        q[rear++] = i; // enqueue index
+
+        while (front < rear && freq[s[q[front]] - 'a'] > 1) {
+            front++; // dequeue
+        }
+
+        if (front < rear) {
+            result[i] = s[q[front]];
+        } else {
+            result[i] = '#';
+        }
+    }
+    result[n] = '\0';
+}
